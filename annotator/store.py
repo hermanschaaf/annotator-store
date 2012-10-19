@@ -1,4 +1,6 @@
 import json
+import re
+import urlparse
 
 from flask import Blueprint, Response
 from flask import g
@@ -12,6 +14,9 @@ store = Blueprint('store', __name__)
 
 CREATE_FILTER_FIELDS = ('updated', 'created', 'consumer')
 UPDATE_FILTER_FIELDS = ('updated', 'created', 'user', 'consumer')
+
+# KHOR: Lists of permitted cross-origin clients
+COR_CLIENT_LIST = ['sg.gengo.khor']
 
 # We define our own jsonify rather than using flask.jsonify because we wish
 # to jsonify arbitrary objects (e.g. index returns a list) rather than kwargs.
@@ -31,7 +36,26 @@ def before_request():
 def after_request(response):
     ac = 'Access-Control-'
 
-    response.headers[ac + 'Allow-Origin']      = request.headers.get('origin', '*')
+# ORIGIN
+#    response.headers[ac + 'Allow-Origin']      = request.headers.get('origin', '*')
+# KHOR: Let us be secure.  Only permit within if from same server but different
+#       port
+#    acao_str = request.headers.get('origin', '*') + " http://sg.gengo.khor:8008" + " http://sg.gengo.khor:5000"
+    origin_str = request.headers.get('origin')
+    # NOTE: Need to add // otherwise urlparse cannot parse properly
+    if re.search("^\/\/", origin_str) or re.search("^http:", origin_str):
+      url_obj = urlparse.urlparse(origin_str)
+    else:
+      url_obj = urlparse.urlparse("\\" + origin_str)
+    try:
+        # NOTE: If there is no match KeyError will occur
+        idx = COR_CLIENT_LIST.index(url_obj.hostname)
+        # Permit the origin
+        response.headers[ac + 'Allow-Origin']      = origin_str
+    except KeyError:
+        # Don't add Access-Control-Allow-Origin
+        pass
+
     response.headers[ac + 'Expose-Headers']    = 'Content-Length, Content-Type, Location'
 
     if request.method == 'OPTIONS':
@@ -181,7 +205,8 @@ def delete_annotation(id):
         return failure
 
     annotation.delete()
-    return None, 204
+#    return None, 204
+    return jsonify(annotation), 204
 
 # SEARCH
 @store.route('/search')

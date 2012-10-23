@@ -18,9 +18,15 @@ class User(object):
 
     @classmethod
     def from_token(cls, token):
+#KHOR: Add: Start
+        consumer_obj = Consumer(token['consumerKey'])
+        consumer_obj.secret = '6E1C924B-C03B-4F7F-0000-B72EE2338B39'
+        consumer_obj.ttl = DEFAULT_TTL
+#KHOR: Add: End
         return cls(
             token['userId'],
-            Consumer(token['consumerKey']),
+#KHOR            Consumer(token['consumerKey']),
+            consumer_obj,
             token.get('admin', False)
         )
 
@@ -49,9 +55,14 @@ class Authenticator(object):
         Returns: a user object
         """
         token = self._decode_request_token(request)
+        print("[auth.pz, request_user] request:" + str(request))
+        print("[auth.pz, request_user] request.headers:" + str(request.headers))
+        print("[auth.pz, request_user] request.cookies:" + str(request.cookies))
+        print("[auth.pz, request_user] token:" + str(token))
 
         if token:
             try:
+                print("[auth.pz, request_user] User.from_token(token):" + str(User.from_token(token)))
                 return User.from_token(token)
             except KeyError:
                 return None
@@ -69,6 +80,7 @@ class Authenticator(object):
         """
 
         token = request.headers.get('x-annotator-auth-token')
+        print("[decode_request_token] token:" + str(token))
         if token is None:
             return False
 
@@ -76,15 +88,20 @@ class Authenticator(object):
             unsafe_token = decode_token(token, verify=False)
         except TokenInvalid: # catch junk tokens
             return False
+        print("[decode_request_token] unsafe_token:" + str(unsafe_token))
 
         key = unsafe_token.get('consumerKey')
+        print("[decode_request_token] key:" + str(key))
         if not key:
             return False
 
         consumer = self.consumer_fetcher(key)
+        print("[decode_request_token] consumer:" + str(consumer))
         if not consumer:
             return False
 
+        print("[decode_request_token] consumer.secret:" + str(consumer.secret))
+        print("[decode_request_token] consumer.ttl:" + str(consumer.ttl))
         try:
             return decode_token(token, secret=consumer.secret, ttl=consumer.ttl)
         except TokenInvalid: # catch inauthentic or expired tokens
@@ -99,6 +116,7 @@ def encode_token(token, secret):
     return jwt.encode(token, secret)
 
 def decode_token(token, secret='', ttl=DEFAULT_TTL, verify=True):
+    print("[decode_token] token:" + str(token) + ", secret:" + str(secret) + ", verify:" + str(verify))
     try:
         token = jwt.decode(token, secret, verify=verify)
     except jwt.DecodeError:
@@ -107,6 +125,7 @@ def decode_token(token, secret='', ttl=DEFAULT_TTL, verify=True):
         new_exc = TokenInvalid("error decoding JSON Web Token: %s" % exc or exc_class)
         raise new_exc.__class__, new_exc, tb
 
+    print("[decode_token] token:" + str(token))
     if verify:
         issue_time = token.get('issuedAt')
         if issue_time is None:

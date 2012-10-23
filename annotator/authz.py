@@ -22,7 +22,9 @@ GROUP_AUTHENTICATED = 'group:__authenticated__'
 GROUP_CONSUMER = 'group:__consumer__'
 
 def authorize(annotation, action, user=None):
+    print("[authz.authorize] annotation:" + str(annotation))
     action_field = annotation.get('permissions', {}).get(action, [])
+    print("[authz.authorize] action_field:" + str(action_field))
 
     # Scenario 1
     if GROUP_WORLD in action_field:
@@ -51,6 +53,12 @@ def authorize(annotation, action, user=None):
         elif user.consumer.key == ann_ckey and user.id in action_field:
             return True
 
+        #KHOR: Add: Start
+        # Scenario 5-1
+        elif user.consumer.key == ann_ckey and not action_field:
+            return True
+        #KHOR: Add: End
+
         # Scenario 6
         elif user.consumer.key == ann_ckey and user.is_admin:
             return True
@@ -75,6 +83,8 @@ def permissions_filter(user=None):
     # Scenario 1
     perm_f = {'term': {'permissions.read': GROUP_WORLD}}
 
+    print("[authz.py,permissions_filter] user.id:" + user.id)
+    print("[authz.py,permissions_filter] user.consumer.key:" + user.consumer.key)
     if user is not None:
         # Fail fast if this looks dodgy
         if user.id.startswith('group:'):
@@ -97,6 +107,12 @@ def permissions_filter(user=None):
         # Scenario 5
         perm_f['or'].append({'and': [{'term': {'consumer': user.consumer.key}},
                                      {'term': {'permissions.read': user.id}}]})
+
+#KHOR: Add: Start
+        # Scenario 5-1
+        perm_f['or'].append({'and': [{'term': {'consumer': user.consumer.key}},
+                                     {'missing': {'field' : 'permissions.read'}}]})
+#KHOR: Add: End
 
         # Scenario 6
         if user.is_admin:

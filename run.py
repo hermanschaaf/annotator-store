@@ -16,6 +16,9 @@ import os
 import sys
 
 from flask import Flask, g, current_app
+#KHOR: Add : Start
+from annotator.auth import Consumer
+#KHOR: Add : End
 from annotator import es, annotation, auth, authz, store
 from tests.helpers import MockUser, MockConsumer, MockAuthenticator
 from tests.helpers import mock_authorizer
@@ -49,7 +52,11 @@ def main():
         # tests. Set AUTH_ON to True in the config file to enable (limited)
         # authentication testing.
         if current_app.config['AUTH_ON']:
-            g.auth = auth.Authenticator(lambda x: MockConsumer('annotateit'))
+#            g.auth = auth.Authenticator(lambda x: MockConsumer('annotateit'))
+            consumer_obj = Consumer('yourconsumerkey')
+            consumer_obj.secret = '6E1C924B-C03B-4F7F-0000-B72EE2338B39'
+            consumer_obj.ttl = auth.DEFAULT_TTL
+            g.auth = auth.Authenticator(lambda x: consumer_obj)
         else:
             g.auth = MockAuthenticator()
 
@@ -59,8 +66,10 @@ def main():
         # enable authorization testing.
         if current_app.config['AUTHZ_ON']:
             g.authorize = authz.authorize
+            print("[run.py,before_request], AUTHZ_ON")
         else:
             g.authorize = mock_authorizer
+            print("[run.py,before_request], AUTHZ_OFF")
 
     app.register_blueprint(store.store)
 

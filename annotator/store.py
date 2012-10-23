@@ -29,8 +29,10 @@ def before_request():
     user = g.auth.request_user(request)
     if user is not None:
         g.user = user
+        print("[store.py, before_request] user.id:" + user.id)
     elif not hasattr(g, 'user'):
         g.user = None
+        print("[store.py, before_request] user.id: None")
 
 @store.after_request
 def after_request(response):
@@ -156,6 +158,7 @@ def read_annotation(id):
     if not annotation:
         return jsonify('Annotation not found!', status=404)
 
+    print("[store.py, read_annotation] annotation:" + str(annotation))
     failure = _check_action(annotation, 'read')
     if failure:
         return failure
@@ -250,6 +253,8 @@ def _get_annotation_user(ann):
         return user
 
 def _check_action(annotation, action, message=''):
+    print("[store.py, check_action], annotation:" + str(annotation))
+    print("[store.py, check_action], action:" + str(action))
     if not g.authorize(annotation, action, g.user):
         return _failed_authz_response(message)
 

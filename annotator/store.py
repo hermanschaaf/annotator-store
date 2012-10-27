@@ -208,7 +208,10 @@ def delete_annotation(id):
         return failure
 
     annotation.delete()
+# Original perhaps
 #    return None, 204
+# From OKFN
+#    return '', 204
     return jsonify(annotation), 204
 
 # SEARCH

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import sys
 
 requires = [
-    'Flask==0.8',
+    'Flask==0.9',
     'pyes==0.19.1',
     'PyJWT==0.1.4',
     'iso8601==0.1.4',
@@ -13,7 +13,7 @@ if sys.version_info < (2, 7):
 
 setup(
     name = 'annotator',
-    version = '0.8.1',
+    version = '0.9.1',
     packages = find_packages(),
 
     install_requires = requires,

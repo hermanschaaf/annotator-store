@@ -3,7 +3,7 @@ import json
 import logging
 
 import pyes
-from flask import _request_ctx_stack
+from flask import _app_ctx_stack
 
 from annotator.atoi import atoi
 
@@ -57,7 +57,7 @@ class ElasticSearch(object):
         """
         if self.app is not None:
             return self.app
-        ctx = _request_ctx_stack.top
+        ctx = _app_ctx_stack.top
         if ctx is not None:
             return ctx.app
         raise RuntimeError('application not registered on ElasticSearch '
@@ -190,6 +190,9 @@ def _build_query_raw(request):
     if request.method == 'GET':
         for k, v in request.args.iteritems():
             _update_query_raw(query, params, k, v)
+
+        if 'query' not in query:
+            query['query'] = {'match_all': {}}
 
     elif request.method == 'POST':
 

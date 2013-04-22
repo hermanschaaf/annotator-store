@@ -16,7 +16,7 @@ CREATE_FILTER_FIELDS = ('updated', 'created', 'consumer')
 UPDATE_FILTER_FIELDS = ('updated', 'created', 'user', 'consumer')
 
 # KHOR: Lists of permitted cross-origin clients
-COR_CLIENT_LIST = ['sg.gengo.khor']
+COR_CLIENT_LIST = ['gc.gengo.dev', 'localhost']
 
 # We define our own jsonify rather than using flask.jsonify because we wish
 # to jsonify arbitrary objects (e.g. index returns a list) rather than kwargs.

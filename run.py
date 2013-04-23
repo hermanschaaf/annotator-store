@@ -74,7 +74,7 @@ def main():
     app.register_blueprint(store.store)
 
     host = os.environ.get('HOST', '127.0.0.1')
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 6000))
     app.run(host=host, port=port)
 
 if __name__ == '__main__':

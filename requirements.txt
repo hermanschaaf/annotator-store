@@ -1,4 +1,9 @@
 Flask==0.9
-pyes==0.19.1
+Jinja2==2.6
 PyJWT==0.1.4
+Werkzeug==0.8.3
+argparse==1.2.1
 iso8601==0.1.4
+pyes==0.19.1
+urllib3==1.5
+wsgiref==0.1.2

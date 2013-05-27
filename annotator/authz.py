@@ -59,6 +59,10 @@ def authorize(annotation, action, user=None):
             return True
         #KHOR: Add: End
 
+        # :gengo: from now on assume any user with a key is allowed
+        elif user.consumer.key == ann_ckey:
+            return True            
+
         # Scenario 6
         elif user.consumer.key == ann_ckey and user.is_admin:
             return True
@@ -113,6 +117,9 @@ def permissions_filter(user=None):
         perm_f['or'].append({'and': [{'term': {'consumer': user.consumer.key}},
                                      {'missing': {'field' : 'permissions.read'}}]})
 #KHOR: Add: End
+
+        # :gengo: we ignore specific read permissions now
+        perm_f['or'].append({'term': {'consumer': user.consumer.key}})
 
         # Scenario 6
         if user.is_admin:
